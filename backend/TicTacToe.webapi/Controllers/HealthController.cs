@@ -6,8 +6,6 @@ namespace TicTacToe.webapi.Controllers
     [ApiController]
     public class HealthController : ControllerBase
     {
-        public HealthController() { }
-
         [HttpGet("/health")]
         public object GetInfo()
         {
