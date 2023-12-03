@@ -1,0 +1,16 @@
+<article>
+  <div>
+    <button (click)="getGames()">Refresh list</button>
+  </div>
+  <div *ngIf="games && games.length > 0">
+    <ul>
+      <li *ngFor="let game of games">
+        {{ game.id }}
+        <button (click)="joinGame(game.id)">Join Game</button>
+      </li>
+    </ul>
+  </div>
+  <div *ngIf="!games || games.length === 0">
+    <p>No available games.</p>
+  </div>
+</article>

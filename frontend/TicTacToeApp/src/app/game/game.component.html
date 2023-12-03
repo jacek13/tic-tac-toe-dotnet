@@ -1,0 +1,11 @@
+<h3>Game hub</h3>
+<div *ngIf="gameId">
+  <div *ngFor="let row of board; let i = index">
+    <div *ngFor="let cell of row; let j = index">
+      <button (click)="makeMove(i, j, 'X')" [disabled]="cell !== null && cell !== 0">
+        {{ cell }}
+      </button>
+    </div>
+  </div>
+  <button (click)="joinGame()">Join Game</button>
+</div>
