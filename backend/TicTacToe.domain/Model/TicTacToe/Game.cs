@@ -47,7 +47,15 @@ namespace TicTacToe.domain.Model.TicTacToe
             AllowNewRound.Clear();
         }
 
-        public TicTacToe.MatchState NewMatchState(int x, int y, FieldType who)
+        public FieldType WhichPlayerBegin()
+            => TicTacToeMatch.State switch
+            {
+                MatchState.CircleTurn => FieldType.Circle,
+                MatchState.CrossTurn => FieldType.Cross,
+                _ => FieldType.None
+            };
+
+        public MatchState NewMatchState(int x, int y, FieldType who)
         {
             TicTacToeMatch.Intrepret(new MoveEvent(((uint)x, (uint)y), who));
             TicTacToeMatch.Intrepret(new CheckIfDrawEvent());

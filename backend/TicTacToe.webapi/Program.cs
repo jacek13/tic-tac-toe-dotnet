@@ -1,5 +1,6 @@
 using Serilog;
 using TicTacToe.domain.Service;
+using TicTacToe.webapi.Hubs;
 
 namespace TicTacToe.webapi
 {
@@ -39,11 +40,12 @@ namespace TicTacToe.webapi
             }
 
             app.UseCors(c => c
-                //.WithOrigins("*") // TODO Set origins
+                //.WithOrigins("http://localhost:5000", "https://localhost:5001", "http://localhost:4200")
                 //.SetIsOriginAllowedToAllowWildcardSubdomains()
+                .AllowAnyOrigin() // TODO remove later
                 .AllowAnyHeader()
                 .WithMethods("POST", "GET", "PUT", "DELETE", "OPTIONS")
-                .AllowCredentials()
+                //.AllowCredentials()
                 .Build());
 
             app.UseHttpsRedirection();
@@ -51,7 +53,7 @@ namespace TicTacToe.webapi
             app.UseAuthorization();
 
             app.MapControllers();
-            // TODO app.MapHub<>
+            app.MapHub<GameHub>("/hub/game");
 
             Log.Information("Starting in environment: {environment}", app.Environment.EnvironmentName);
             try
