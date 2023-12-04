@@ -57,38 +57,47 @@ namespace TicTacToe.webapi.Hubs
         {
             var game = _gameService.GetGame(gameId);
 
-            if (game is null)
+            try
             {
-                await Clients.Caller.SendAsync("Error", "Game couldn't be found");
-                return;
+                if (game is null)
+                {
+                    await Clients.Caller.SendAsync("Error", "Game couldn't be found");
+                    return;
+                }
+
+                var currentState = game.TicTacToeMatch.State;
+                var stateAfterMove = game.NewMatchState(x, y, who == 'X' ? FieldType.Cross : FieldType.Circle);
+
+                await Clients.Group(game.Id.ToString()).SendAsync("UpdateBoard", JsonSerializer.Serialize(game.TicTacToeMatch.Board));
+
+                switch (stateAfterMove)
+                {
+                    case MatchState.CircleTurn:
+                        await Clients.Client(game.Users.FindAll(connId => connId != Context.ConnectionId)[0]).SendAsync("SetMover", true);
+                        break;
+                    case MatchState.CrossTurn:
+                        await Clients.Caller.SendAsync("SetMover", true);
+                        break;
+                    case MatchState.Draw:
+                        await Clients.Group(game.Id.ToString()).SendAsync("GameEnded", "DRAW");
+                        break;
+                    case MatchState.CircleWon:
+                        await Clients.Group(game.Id.ToString()).SendAsync("GameEnded", "CIRCLE_WON");
+                        break;
+                    case MatchState.CrossWon:
+                        await Clients.Group(game.Id.ToString()).SendAsync("GameEnded", "CROSS_WON");
+                        break;
+                    case MatchState.MatchInterrupted:
+                    default:
+                        await Clients.Group(game.Id.ToString()).SendAsync("ERROR", "Something went wrong");
+                        break;
+                }
             }
-
-            var currentState = game.TicTacToeMatch.State;
-            var stateAfterMove = game.NewMatchState(x, y, who == 'X' ? FieldType.Cross : FieldType.Circle);
-
-            await Clients.Group(game.Id.ToString()).SendAsync("UpdateBoard", JsonSerializer.Serialize(game.TicTacToeMatch.Board));
-
-            switch (stateAfterMove)
+            catch (Exception e)
             {
-                case MatchState.CircleTurn:
-                    await Clients.Client(game.Users.FindAll(connId => connId != Context.ConnectionId)[0]).SendAsync("SetMover", true);
-                    break;
-                case MatchState.CrossTurn:
-                    await Clients.Caller.SendAsync("SetMover", true);
-                    break;
-                case MatchState.Draw:
-                    await Clients.Group(game.Id.ToString()).SendAsync("GameEnded", "DRAW");
-                    break;
-                case MatchState.CircleWon:
-                    await Clients.Group(game.Id.ToString()).SendAsync("GameEnded", "CIRCLE_WON");
-                    break;
-                case MatchState.CrossWon:
-                    await Clients.Group(game.Id.ToString()).SendAsync("GameEnded", "CROSS_WON");
-                    break;
-                case MatchState.MatchInterrupted:
-                default:
-                    await Clients.Group(game.Id.ToString()).SendAsync("ERROR", "Something went wrong");
-                    break;
+                _logger.Warning("Something went wrong: {message}", e.Message);
+                await Clients.Group(game.Id.ToString()).SendAsync("ERROR", "Something went wrong");
+                return;
             }
         }
 

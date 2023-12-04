@@ -47,8 +47,11 @@ namespace TicTacToe.domain.Model.TicTacToe
         public Match Handle(MoveEvent @event)
         {
             if (@event is null) throw new ArgumentNullException(nameof(@event));
-            if (@event.WhoseTurn != FieldType.Cross && @event.WhoseTurn != FieldType.Circle) throw new Exception("Invalid data from client");
+            if (@event.WhoseTurn != FieldType.Cross && @event.WhoseTurn != FieldType.Circle) throw new Exception("Invalid data from client"); // TODO DomainError
+            if (@event.WhoseTurn != (State == MatchState.CircleTurn ? FieldType.Circle : FieldType.Cross)) throw new Exception($"Invalid data from client: {(@event.WhoseTurn == FieldType.Circle ? "Cross turn..." : "Circle turn...")} please wait");
             if (@event.Target.x >= BOARD_MAX_SIZE || @event.Target.y >= BOARD_MAX_SIZE) throw new Exception("Invalid coordinates from client");
+            if (State == MatchState.Draw || State == MatchState.CrossWon || State == MatchState.CircleWon) throw new Exception($"Match ended with state: {State.ToString()}");
+
             if (Board[@event.Target.x][@event.Target.y] == FieldType.None)
             {
                 Board[@event.Target.x][@event.Target.y] = @event.WhoseTurn;
