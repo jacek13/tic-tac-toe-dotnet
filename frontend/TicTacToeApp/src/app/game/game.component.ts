@@ -1,5 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as signalR from '@microsoft/signalr';
 
@@ -17,7 +17,7 @@ export class GameComponent implements OnInit {
   public isMyMove: any;
   public clientFieldType: any;
 
-  constructor(private route: ActivatedRoute) {
+  constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef) {
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl('http://localhost:5000/hub/game', { withCredentials: false }) // TODO problem with CORS - origin null and move url to const data
       .build();
@@ -29,13 +29,15 @@ export class GameComponent implements OnInit {
       console.log(isMyTurn);
       if (isMyTurn) {
         this.isMyMove = isMyTurn;
+        this.cdr.detectChanges();
       }
     });
 
-    this.hubConnection.on('SetMover', (fieldType: any) => {
+    this.hubConnection.on('SetChar', (fieldType: any) => {
       console.log(fieldType);
       if (fieldType) {
         this.clientFieldType = fieldType;
+        this.cdr.detectChanges();
       }
     });
 
@@ -43,6 +45,7 @@ export class GameComponent implements OnInit {
       console.log(board);
       if (board) {
         this.board = JSON.parse(board);
+        this.cdr.detectChanges();
       }
     });
 
@@ -50,16 +53,19 @@ export class GameComponent implements OnInit {
       console.log(board);
       if (board) {
         this.board = JSON.parse(board);
+        this.cdr.detectChanges();
       }
     });
 
     this.hubConnection.on('GameEnded', (result: string) => {
       console.log('Game Ended:', result);
+      this.cdr.detectChanges();
       // Handle game end logic here
     });
 
     this.hubConnection.on('Error', (error: string) => {
       console.error('Error:', error);
+      this.cdr.detectChanges();
       // Handle error logic here
     });
   }
@@ -84,9 +90,9 @@ export class GameComponent implements OnInit {
       .catch((err: any) => console.error('Error while joining game:', err));
   }
 
-  makeMove(x: number, y: number, playerChar: string): void {
+  makeMove(x: number, y: number): void {
     // Call the PlayerMove method on the server
-    this.hubConnection.invoke('PlayerMove', this.gameId, x, y, playerChar)
+    this.hubConnection.invoke('PlayerMove', this.gameId, x, y, this.clientFieldType)
       .catch((err: any) => console.error('Error while making move:', err));
   }
 }

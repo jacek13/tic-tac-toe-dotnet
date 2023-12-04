@@ -1,10 +1,12 @@
-<!-- app.component.html -->
-<header>
-  <h1>Tic Tac Toe</h1>
-</header>
-<main>
-  <router-outlet></router-outlet>
-</main>
-<footer>
-  <p>Stopka</p>
-</footer>
+<div class="card">
+  <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+    <a class="navbar-brand" href="#">Tic Tac Toe</a>
+    <a class="nav-link" href="/games">Game list</a>
+  </nav>
+  <main class="card-body">
+    <router-outlet></router-outlet>
+  </main>
+  <footer class="card-footer fixed-bottom">
+    <a href="https://github.com/jacek13" target="_blank" class="nav-link text-body-secondary text-decoration-none">2023 Michał Jackowski</a>
+  </footer>
+</div>

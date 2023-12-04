@@ -1,11 +1,18 @@
-<h3>Game hub</h3>
-<div *ngIf="gameId">
-  <div *ngFor="let row of board; let i = index">
-    <div *ngFor="let cell of row; let j = index">
-      <button (click)="makeMove(i, j, 'X')" [disabled]="cell !== null && cell !== 0">
-        {{ cell }}
-      </button>
+<div class="container mt-4">
+  <h3>Game hub</h3>
+
+  <div *ngIf="gameId">
+    <div class="container-sm">
+      <div class="col-4" *ngFor="let row of board; let i = index">
+        <div class="row">
+          <div class="col-4" *ngFor="let cell of row; let j = index">
+            <button class="btn btn-primary btn-block mb-3" (click)="makeMove(i, j)" [disabled]="cell !== null && cell !== 0">
+              {{ cell }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+    <button class="btn btn-success mt-3" (click)="joinGame()">Start Game</button>
   </div>
-  <button (click)="joinGame()">Join Game</button>
 </div>

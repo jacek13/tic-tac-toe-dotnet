@@ -6,7 +6,7 @@
     <ul>
       <li *ngFor="let game of games">
         {{ game.id }}
-        <button (click)="joinGame(game.id)">Join Game</button>
+        <button type="button" class="btn btn-success" (click)="joinGame(game.id)">Join Game</button>
       </li>
     </ul>
   </div>
