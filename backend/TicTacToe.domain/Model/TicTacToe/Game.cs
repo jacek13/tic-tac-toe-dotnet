@@ -1,31 +1,37 @@
-﻿using TicTacToe.domain.Model.Common;
+﻿using TicTacToe.domain.Model.Chat;
+using TicTacToe.domain.Model.Common;
 
 namespace TicTacToe.domain.Model.TicTacToe
 {
     public class Game : BaseEntity
     {
-        // TODO chat
+        public GameChat Chat { get; set; }
 
         public Match TicTacToeMatch { get; set; }
 
-        public List<string> Users { get; set; } // Trzeba by zrobić model który by miał zgody zawodników + ich identyfikatory
+        public List<Player> Users { get; set; }
 
         public List<string> AllowNewRound { get; private set; }
 
         public Game()
         {
+            Chat = new();
             TicTacToeMatch = new();
             TicTacToeMatch.Intrepret(new ClearBoardEvent());
             Users = new();
             AllowNewRound = new();
         }
 
-        public bool AddUser(string userConnection)
+        public bool AddUser(string userConnection, string name = default, Guid userId = default)
         {
             if (Users.Count >= 2)
                 return false;
 
-            Users.Add(userConnection);
+            var player = string.IsNullOrWhiteSpace(name) || userId == Guid.Empty
+                ? new Player(userConnection)
+                : new Player(userConnection, name, userId);
+
+            Users.Add(player);
             return true;
         }
 
@@ -42,10 +48,17 @@ namespace TicTacToe.domain.Model.TicTacToe
 
         public void NewGame()
         {
+            Chat = new();
             TicTacToeMatch = new();
             TicTacToeMatch.Intrepret(new ClearBoardEvent());
             AllowNewRound.Clear();
         }
+
+        public void AddMessage(string author, string content)
+            => Chat.Add(author, content);
+
+        public ChatMessage GetLastMessage()
+            => Chat.Last();
 
         public FieldType WhichPlayerBegin()
             => TicTacToeMatch.State switch

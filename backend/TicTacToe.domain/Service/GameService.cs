@@ -13,7 +13,7 @@ namespace TicTacToe.domain.Service
 
         public Game GetGameByConnectionId(string connId)
         {
-            return Games.Find(game => game.Users.Exists(id => id == connId));
+            return Games.Find(game => game.Users.Exists(player => player.ConnectionId == connId));
         }
 
         public IReadOnlyList<Game> GetActiveGames()

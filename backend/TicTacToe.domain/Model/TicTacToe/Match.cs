@@ -27,7 +27,7 @@ namespace TicTacToe.domain.Model.TicTacToe
         public Match Handle(ClearBoardEvent @event)
         {
             if (@event is null) throw new ArgumentNullException(nameof(@event));
-            if (State == MatchState.CircleWon || State == MatchState.CrossWon || State == MatchState.Draw) throw new Exception($"Cannot handle event. Game is in {State} state");
+            if (State == MatchState.CircleWon || State == MatchState.CrossWon || State == MatchState.Draw) throw new DomainException(DomainError.MatchEnded);
 
             for (short i = 0; i < BOARD_MAX_SIZE; i++)
             {
@@ -47,10 +47,10 @@ namespace TicTacToe.domain.Model.TicTacToe
         public Match Handle(MoveEvent @event)
         {
             if (@event is null) throw new ArgumentNullException(nameof(@event));
-            if (@event.WhoseTurn != FieldType.Cross && @event.WhoseTurn != FieldType.Circle) throw new Exception("Invalid data from client"); // TODO DomainError
-            if (@event.WhoseTurn != (State == MatchState.CircleTurn ? FieldType.Circle : FieldType.Cross)) throw new Exception($"Invalid data from client: {(@event.WhoseTurn == FieldType.Circle ? "Cross turn..." : "Circle turn...")} please wait");
-            if (@event.Target.x >= BOARD_MAX_SIZE || @event.Target.y >= BOARD_MAX_SIZE) throw new Exception("Invalid coordinates from client");
-            if (State == MatchState.Draw || State == MatchState.CrossWon || State == MatchState.CircleWon) throw new Exception($"Match ended with state: {State.ToString()}");
+            if (@event.WhoseTurn != FieldType.Cross && @event.WhoseTurn != FieldType.Circle) throw new DomainException(DomainError.InvalidMove);
+            if (@event.WhoseTurn != (State == MatchState.CircleTurn ? FieldType.Circle : FieldType.Cross)) throw new DomainException(@event.WhoseTurn == FieldType.Circle ? DomainError.InvalidCrossMove : DomainError.InvalidCircleMove);
+            if (@event.Target.x >= BOARD_MAX_SIZE || @event.Target.y >= BOARD_MAX_SIZE) throw new DomainException(DomainError.InvalidCoordinates);
+            if (State == MatchState.Draw || State == MatchState.CrossWon || State == MatchState.CircleWon) throw new DomainException(DomainError.MatchEnded);
 
             if (Board[@event.Target.x][@event.Target.y] == FieldType.None)
             {
@@ -64,7 +64,7 @@ namespace TicTacToe.domain.Model.TicTacToe
         public Match Handle(CheckWonEvent @event)
         {
             if (@event is null) throw new ArgumentNullException(nameof(@event));
-            if (@event.For != FieldType.Cross && @event.For != FieldType.Circle) throw new Exception("Invalid data from client");
+            if (@event.For != FieldType.Cross && @event.For != FieldType.Circle) throw new DomainException(DomainError.InvalidMove);
 
             for (int i = 0; i < BOARD_MAX_SIZE; i++)
             {

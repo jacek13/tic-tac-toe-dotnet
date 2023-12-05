@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using System.Text.Json;
+using TicTacToe.domain;
 using TicTacToe.domain.Model.TicTacToe;
 using TicTacToe.domain.Service;
 
@@ -29,7 +30,10 @@ namespace TicTacToe.webapi.Hubs
             }
 
             game.AddUser(Context.ConnectionId);
+            game.AddMessage($"[Game room: {game.Id}]", "player joined room");
+
             await Groups.AddToGroupAsync(Context.ConnectionId, game.Id.ToString());
+            await SendAsyncToGroup(game.Id.ToString(), "NewChatMessage", game.GetLastMessage());
             _logger.Information("Added user with connectionId: {connectionId}", Context.ConnectionId);
 
             if (game.Users.Count == 2)
@@ -38,19 +42,41 @@ namespace TicTacToe.webapi.Hubs
             }
         }
 
-        async Task StartGame(Game game)
+        private async Task StartGame(Game game)
         {
             _logger.Information("Starting the game with id: {gameId}", game.Id);
 
             bool isPlayerOneBeginner = game.WhichPlayerBegin() == FieldType.Circle;
+            game.Users[0].Type = isPlayerOneBeginner ? FieldType.Cross : FieldType.Circle;
+            game.Users[1].Type = !isPlayerOneBeginner ? FieldType.Cross : FieldType.Circle;
 
-            await Clients.Client(game.Users[0]).SendAsync("SetMover", isPlayerOneBeginner);
-            await Clients.Client(game.Users[0]).SendAsync("SetChar", isPlayerOneBeginner ? 'X' : 'O');
+            await SendAsyncToClient(game.Users.First().ConnectionId, "SetMover", isPlayerOneBeginner);
+            await SendAsyncToClient(game.Users.First().ConnectionId, "SetChar", isPlayerOneBeginner ? 'X' : 'O');
 
-            await Clients.Client(game.Users[1]).SendAsync("SetMover", !isPlayerOneBeginner);
-            await Clients.Client(game.Users[1]).SendAsync("SetChar", !isPlayerOneBeginner ? 'X' : 'O');
+            await SendAsyncToClient(game.Users.Last().ConnectionId, "SetMover", !isPlayerOneBeginner);
+            await SendAsyncToClient(game.Users.Last().ConnectionId, "SetChar", !isPlayerOneBeginner ? 'X' : 'O');
 
-            await Clients.Group(game.Id.ToString()).SendAsync("GetGame", JsonSerializer.Serialize(game.TicTacToeMatch.Board));
+            await SendAsyncToGroup(game.Id.ToString(), "GetGame", JsonSerializer.Serialize(game.TicTacToeMatch.Board));
+        }
+
+        public async Task SendChatMessage(Guid gameId, string message)
+        {
+            var game = _gameService.GetGame(gameId);
+            if (game is null)
+            {
+                await Clients.Caller.SendAsync("Error", "Game couldn't be found");
+                return;
+            }
+
+            var player = game.Users.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
+            if (player is null)
+            {
+                await Clients.Caller.SendAsync("Error", "Player couldn't be found");
+                return;
+            }
+
+            game.Chat.Add(player.Name, message);
+            await SendAsyncToGroup(game.Id.ToString(), "NewChatMessage", game.GetLastMessage());
         }
 
         public async Task PlayerMove(Guid gameId, int x, int y, char who)
@@ -68,36 +94,50 @@ namespace TicTacToe.webapi.Hubs
                 var currentState = game.TicTacToeMatch.State;
                 var stateAfterMove = game.NewMatchState(x, y, who == 'X' ? FieldType.Cross : FieldType.Circle);
 
-                await Clients.Group(game.Id.ToString()).SendAsync("UpdateBoard", JsonSerializer.Serialize(game.TicTacToeMatch.Board));
+                await SendAsyncToGroup(game.Id.ToString(), "UpdateBoard", JsonSerializer.Serialize(game.TicTacToeMatch.Board));
+                var message = (string.Empty, string.Empty);
 
                 switch (stateAfterMove)
                 {
                     case MatchState.CircleTurn:
-                        await Clients.Client(game.Users.FindAll(connId => connId != Context.ConnectionId)[0]).SendAsync("SetMover", true);
-                        break;
                     case MatchState.CrossTurn:
-                        await Clients.Caller.SendAsync("SetMover", true);
+                        var player = game.Users.FirstOrDefault(player => player.IsPlayerTurn(stateAfterMove));
+                        await SendAsyncToClient(player!.ConnectionId, "SetMover", true);
                         break;
                     case MatchState.Draw:
-                        await Clients.Group(game.Id.ToString()).SendAsync("GameEnded", "DRAW");
+                        await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "DRAW");
+                        message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.Draw}");
                         break;
                     case MatchState.CircleWon:
-                        await Clients.Group(game.Id.ToString()).SendAsync("GameEnded", "CIRCLE_WON");
+                        await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "CIRCLE_WON");
+                        message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.CircleWon}");
                         break;
                     case MatchState.CrossWon:
-                        await Clients.Group(game.Id.ToString()).SendAsync("GameEnded", "CROSS_WON");
+                        await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "CROSS_WON");
+                        message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.CrossWon}");
                         break;
                     case MatchState.MatchInterrupted:
                     default:
-                        await Clients.Group(game.Id.ToString()).SendAsync("ERROR", "Something went wrong");
+                        await SendAsyncToGroup(game.Id.ToString(), "ERROR", "Something went wrong");
                         break;
                 }
+
+                if (message != (string.Empty, string.Empty))
+                {
+                    game.Chat.Add(message.Item1, message.Item2);
+                    await SendAsyncToGroup(game.Id.ToString(), "NewChatMessage", game.GetLastMessage());
+                }
+            }
+            catch (DomainException e)
+            {
+                _logger.Warning("Domain error: {message}", e.Message);
+                game.Chat.Add($"[Game room: {game.Id}]", e.Message);
+                await SendAsyncToGroup(game.Id.ToString(), "NewChatMessage", game.GetLastMessage());
             }
             catch (Exception e)
             {
                 _logger.Warning("Something went wrong: {message}", e.Message);
-                await Clients.Group(game.Id.ToString()).SendAsync("ERROR", "Something went wrong");
-                return;
+                await SendAsyncToGroup(game.Id.ToString(), "ERROR", "Something went wrong");
             }
         }
 
@@ -108,13 +148,22 @@ namespace TicTacToe.webapi.Hubs
             var game = _gameService.GetGameByConnectionId(Context.ConnectionId);
             if (game is null) return;
 
-            if (game.Users.Any(u => u == Context.ConnectionId))
+            if (game.Users.Any(u => u.ConnectionId == Context.ConnectionId))
             {
-                game.Users.Remove(Context.ConnectionId);
+                var disconectedPlayer = game.Users.First(u => u.ConnectionId == Context.ConnectionId);
+                game.Users.Remove(disconectedPlayer);
+                game.AddMessage($"[Game room: {game.Id}]", "player leaved game");
+                await SendAsyncToGroup(game.Id.ToString(), "NewChatMessage", game.GetLastMessage());
             }
 
             if (game.Users.Count == 0)
                 _gameService.Games.Remove(game);
         }
+
+        private async Task SendAsyncToGroup(string groupName, string method, object? argument)
+            => await Clients.Group(groupName).SendAsync(method, argument);
+
+        private async Task SendAsyncToClient(string connectionId, string method, object? argument)
+            => await Clients.Client(connectionId).SendAsync(method, argument);
     }
 }
