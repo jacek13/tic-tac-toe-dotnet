@@ -1,12 +1,13 @@
 import { NgFor, NgIf } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import * as signalR from '@microsoft/signalr';
 
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [NgIf, NgFor],
+  imports: [NgIf, NgFor, FormsModule],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css'
 })
@@ -15,7 +16,9 @@ export class GameComponent implements OnInit {
   public board: any[][];
   public gameId: string | null;
   public isMyMove: any;
-  public clientFieldType: any;
+  public clientFieldType: any | null;
+  public userText: string = '';
+  public chatContent: string = '';
 
   constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef) {
     this.hubConnection = new signalR.HubConnectionBuilder()
@@ -37,6 +40,7 @@ export class GameComponent implements OnInit {
       console.log(fieldType);
       if (fieldType) {
         this.clientFieldType = fieldType;
+        this.chatContent += `[Client info] You play as: ${fieldType}\n`
         this.cdr.detectChanges();
       }
     });
@@ -61,6 +65,15 @@ export class GameComponent implements OnInit {
       console.log('Game Ended:', result);
       this.cdr.detectChanges();
       // Handle game end logic here
+    });
+
+    this.hubConnection.on('NewChatMessage', (chatMessage: any) => {
+      console.log(chatMessage);
+      if(chatMessage){
+        this.chatContent += `${chatMessage.author} - ${chatMessage.content}\n`
+      }
+      this.cdr.detectChanges();
+      // Handle error logic here
     });
 
     this.hubConnection.on('Error', (error: string) => {
@@ -94,5 +107,11 @@ export class GameComponent implements OnInit {
     // Call the PlayerMove method on the server
     this.hubConnection.invoke('PlayerMove', this.gameId, x, y, this.clientFieldType)
       .catch((err: any) => console.error('Error while making move:', err));
+  }
+
+  sendMessage(message: string): void {
+    this.hubConnection.invoke('SendChatMessage', this.gameId, message)
+      .catch((err: any) => console.error('Error while sending message:', err));
+    this.userText = '';
   }
 }

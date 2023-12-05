@@ -2,11 +2,11 @@
   <h3>Game hub</h3>
 
   <div *ngIf="gameId">
-    <div class="container-sm">
+    <div class="container-sm" style="width: 440px; height: 200px;">
       <div class="col-4" *ngFor="let row of board; let i = index">
         <div class="row">
           <div class="col-4" *ngFor="let cell of row; let j = index">
-            <button class="btn btn-primary btn-block mb-3" (click)="makeMove(i, j)" [disabled]="cell !== null && cell !== 0">
+            <button class="btn btn-primary btn-block mb-3" style="width: 40px; height: 40px;" (click)="makeMove(i, j)" [disabled]="cell !== null && cell !== ' '">
               {{ cell }}
             </button>
           </div>
@@ -14,5 +14,16 @@
       </div>
     </div>
     <button class="btn btn-success mt-3" (click)="joinGame()">Start Game</button>
+
+    <div class="form-group">
+      <label for="nonEditableText">Chat:</label>
+      <textarea class="form-control" id="nonEditableText" rows="5" cols="5" [(ngModel)]="chatContent" readonly></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="userText">Send message:</label>
+      <input class="form-control" type="text" [(ngModel)]="userText">
+      <button class="btn btn-success mt-3" (click)="sendMessage(userText)">Send Message</button>
+    </div>
   </div>
 </div>
