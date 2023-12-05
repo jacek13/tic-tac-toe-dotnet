@@ -56,7 +56,7 @@ namespace TicTacToe.webapi.Hubs
             await SendAsyncToClient(game.Users.Last().ConnectionId, "SetMover", !isPlayerOneBeginner);
             await SendAsyncToClient(game.Users.Last().ConnectionId, "SetChar", !isPlayerOneBeginner ? 'X' : 'O');
 
-            await SendAsyncToGroup(game.Id.ToString(), "GetGame", JsonSerializer.Serialize(game.TicTacToeMatch.Board));
+            await SendAsyncToGroup(game.Id.ToString(), "GetGame", JsonSerializer.Serialize(game.GetBoardAsCharacters()));
         }
 
         public async Task SendChatMessage(Guid gameId, string message)
@@ -94,7 +94,7 @@ namespace TicTacToe.webapi.Hubs
                 var currentState = game.TicTacToeMatch.State;
                 var stateAfterMove = game.NewMatchState(x, y, who == 'X' ? FieldType.Cross : FieldType.Circle);
 
-                await SendAsyncToGroup(game.Id.ToString(), "UpdateBoard", JsonSerializer.Serialize(game.TicTacToeMatch.Board));
+                await SendAsyncToGroup(game.Id.ToString(), "UpdateBoard", JsonSerializer.Serialize(game.GetBoardAsCharacters()));
                 var message = (string.Empty, string.Empty);
 
                 switch (stateAfterMove)

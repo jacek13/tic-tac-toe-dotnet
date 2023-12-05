@@ -68,6 +68,17 @@ namespace TicTacToe.domain.Model.TicTacToe
                 _ => FieldType.None
             };
 
+        public char FieldTypeToChar(FieldType fieldType)
+            => fieldType switch
+            {
+                FieldType.Circle => 'O',
+                FieldType.Cross => 'X',
+                _ => ' '
+            };
+
+        public char[][] GetBoardAsCharacters()
+            => TicTacToeMatch.Board.Select(row => row.Select(field => FieldTypeToChar(field)).ToArray()).ToArray();
+
         public MatchState NewMatchState(int x, int y, FieldType who)
         {
             TicTacToeMatch.Intrepret(new MoveEvent(((uint)x, (uint)y), who));
