@@ -12,7 +12,7 @@ namespace TicTacToe.webapi.Controllers
             return new
             {
                 EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
-                ServerDate = DateTime.Now,
+                ServerDate = TimeProvider.System.GetUtcNow().DateTime,
             };
         }
 
