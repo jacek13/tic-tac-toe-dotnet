@@ -47,16 +47,14 @@ namespace TicTacToe.domain.Model.TicTacToe
         public Match Handle(MoveEvent @event)
         {
             if (@event is null) throw new ArgumentNullException(nameof(@event));
-            if (@event.WhoseTurn != FieldType.Cross && @event.WhoseTurn != FieldType.Circle) throw new DomainException(DomainError.InvalidMove);
-            if (@event.WhoseTurn != (State == MatchState.CircleTurn ? FieldType.Circle : FieldType.Cross)) throw new DomainException(@event.WhoseTurn == FieldType.Circle ? DomainError.InvalidCrossMove : DomainError.InvalidCircleMove);
-            if (@event.Target.x >= BOARD_MAX_SIZE || @event.Target.y >= BOARD_MAX_SIZE) throw new DomainException(DomainError.InvalidCoordinates);
             if (State == MatchState.Draw || State == MatchState.CrossWon || State == MatchState.CircleWon) throw new DomainException(DomainError.MatchEnded);
+            if (@event.WhoseTurn != FieldType.Cross && @event.WhoseTurn != FieldType.Circle) throw new DomainException(DomainError.InvalidMove);
+            if (@event.WhoseTurn != (State == MatchState.CircleTurn ? FieldType.Circle : FieldType.Cross)) throw new DomainException(DomainError.InvalidMove);
+            if (@event.Target.x >= BOARD_MAX_SIZE || @event.Target.y >= BOARD_MAX_SIZE) throw new DomainException(DomainError.InvalidCoordinates);
+            if (Board[@event.Target.x][@event.Target.y] != FieldType.None) throw new DomainException(DomainError.InvalidMoveFieldAlreadyUsed);
 
-            if (Board[@event.Target.x][@event.Target.y] == FieldType.None)
-            {
-                Board[@event.Target.x][@event.Target.y] = @event.WhoseTurn;
-                State = @event.WhoseTurn == FieldType.Cross ? MatchState.CircleTurn : MatchState.CrossTurn;
-            }
+            Board[@event.Target.x][@event.Target.y] = @event.WhoseTurn;
+            State = @event.WhoseTurn == FieldType.Cross ? MatchState.CircleTurn : MatchState.CrossTurn;
 
             return this;
         }

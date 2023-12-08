@@ -46,6 +46,29 @@ namespace TicTacToe.domain.Model.TicTacToe
             return AllowNewRound.Count == 2;
         }
 
+        public (Player, Player) AssignFieldsToPlayers()
+        {
+            if (Users is null) throw new ArgumentNullException("Users cannot be null");
+            if (Users.Count < 2) throw new DomainException(DomainError.InvalidPlayerCount);
+
+            switch (WhichPlayerBegin())
+            {
+                case FieldType.Cross:
+                    Users[0].Type = FieldType.Cross;
+                    Users[1].Type = FieldType.Circle;
+                    break;
+                case FieldType.Circle:
+                    Users[0].Type = FieldType.Circle;
+                    Users[1].Type = FieldType.Cross;
+                    break;
+                case FieldType.None:
+                    throw new DomainException(DomainError.InvalidFieldType);
+                default:
+                    break;
+            }
+            return (Users.First(), Users.Last());
+        }
+
         public void NewGame()
         {
             Chat = new();

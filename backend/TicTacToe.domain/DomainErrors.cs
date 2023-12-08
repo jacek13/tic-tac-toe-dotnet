@@ -5,7 +5,10 @@
         InvalidCrossMove,
         InvalidCircleMove,
         InvalidMove,
+        InvalidMoveFieldAlreadyUsed,
         InvalidCoordinates,
+        InvalidPlayerCount,
+        InvalidFieldType,
         MatchEnded,
         ValidationError
     }

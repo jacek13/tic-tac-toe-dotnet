@@ -46,17 +46,18 @@ namespace TicTacToe.webapi.Hubs
         {
             _logger.Information("Starting the game with id: {gameId}", game.Id);
 
-            bool isPlayerOneBeginner = game.WhichPlayerBegin() == FieldType.Circle;
-            game.Users[0].Type = isPlayerOneBeginner ? FieldType.Cross : FieldType.Circle;
-            game.Users[1].Type = !isPlayerOneBeginner ? FieldType.Cross : FieldType.Circle;
+            var (playerFirst, playerSecond) = game.AssignFieldsToPlayers();
+            var startingField = game.WhichPlayerBegin();
+            var isPlayerOneBeginner = playerFirst.Type == startingField;
 
-            await SendAsyncToClient(game.Users.First().ConnectionId, "SetMover", isPlayerOneBeginner);
-            await SendAsyncToClient(game.Users.First().ConnectionId, "SetChar", isPlayerOneBeginner ? 'X' : 'O');
-
-            await SendAsyncToClient(game.Users.Last().ConnectionId, "SetMover", !isPlayerOneBeginner);
-            await SendAsyncToClient(game.Users.Last().ConnectionId, "SetChar", !isPlayerOneBeginner ? 'X' : 'O');
-
+            await SendAsyncToClient(playerFirst.ConnectionId, "SetMover", isPlayerOneBeginner);
+            await SendAsyncToClient(playerFirst.ConnectionId, "SetChar", isPlayerOneBeginner ? 'X' : 'O');
+            await SendAsyncToClient(playerSecond.ConnectionId, "SetMover", !isPlayerOneBeginner);
+            await SendAsyncToClient(playerSecond.ConnectionId, "SetChar", !isPlayerOneBeginner ? 'X' : 'O');
             await SendAsyncToGroup(game.Id.ToString(), "GetGame", JsonSerializer.Serialize(game.GetBoardAsCharacters()));
+
+            game.Chat.Add($"[Game room: {game.Id}]", $"First move for: {game.FieldTypeToChar(startingField)}");
+            await SendAsyncToGroup(game.Id.ToString(), "NewChatMessage", game.GetLastMessage());
         }
 
         public async Task SendChatMessage(Guid gameId, string message)
