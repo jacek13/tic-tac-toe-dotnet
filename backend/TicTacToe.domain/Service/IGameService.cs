@@ -4,12 +4,16 @@ namespace TicTacToe.domain.Service
 {
     public interface IGameService
     {
-        List<Game> Games { get; }
+        Game CreateNewGame();
 
-        Game GetGame(Guid id);
+        Game FindGameForUser();
 
-        Game GetGameByConnectionId(string connId);
+        Game? GetGame(Guid id);
+
+        Game? GetGameByConnectionId(string connectionId);
 
         IReadOnlyList<Game> GetActiveGames();
+
+        bool DeleteGameById(Guid id);
     }
 }

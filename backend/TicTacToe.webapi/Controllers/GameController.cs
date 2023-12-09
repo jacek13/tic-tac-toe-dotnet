@@ -17,16 +17,19 @@ namespace TicTacToe.webapi.Controllers
         [HttpPost("/games")]
         public Guid CreateGame()
         {
-            // TODO validation
-            // TODO more methods instead of _gameService reference
-            var game = new Game();
+            var game = _gameService.CreateNewGame();
+            return game.Id;
+        }
 
-            _gameService.Games.Add(game);
+        [HttpGet("/games/find-random")]
+        public Guid FindRandomGame()
+        {
+            var game = _gameService.FindGameForUser();
             return game.Id;
         }
 
         [HttpGet("/games")]
-        public IReadOnlyList<Game> GetActivegames()
+        public IReadOnlyList<Game> GetActiveGames()
             => _gameService.GetActiveGames();
     }
 }

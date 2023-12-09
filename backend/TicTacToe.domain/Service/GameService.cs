@@ -4,24 +4,37 @@ namespace TicTacToe.domain.Service
 {
     public class GameService : IGameService
     {
-        public List<Game> Games { get; private set; } = new();
+        private List<Game> Games { get; set; } = new();
 
-        public Game GetGame(Guid id)
-        {
-            return Games.Find(game => game.Id == id);
-        }
+        public Game? GetGame(Guid id)
+            => Games.FirstOrDefault(game => game.Id == id);
 
-        public Game GetGameByConnectionId(string connId)
-        {
-            return Games.Find(game => game.Users.Exists(player => player.ConnectionId == connId));
-        }
+        public Game? GetGameByConnectionId(string connectionId)
+            => Games.Find(game => game.Users.Exists(player => player.ConnectionId == connectionId));
 
         public IReadOnlyList<Game> GetActiveGames()
-        {
-            return Games.Where(g => g.TicTacToeMatch.State != MatchState.Draw
+            => Games.Where(g => g.TicTacToeMatch.State != MatchState.Draw
                 && g.TicTacToeMatch.State != MatchState.CrossWon
                 && g.TicTacToeMatch.State != MatchState.CircleWon)
                 .ToList();
+
+        public Game CreateNewGame()
+        {
+            var newGame = new Game();
+            Games.Add(newGame);
+            return newGame;
+        }
+
+        public Game FindGameForUser()
+            => Games.FirstOrDefault(g => g.Users.Count == 1) ?? CreateNewGame();
+
+        public bool DeleteGameById(Guid id)
+        {
+            var game = Games.FirstOrDefault(g => g.Id == id);
+            if (game is null) return false;
+
+            Games.Remove(game);
+            return true;
         }
     }
 }

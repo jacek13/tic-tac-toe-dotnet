@@ -29,6 +29,12 @@ namespace TicTacToe.webapi.Hubs
                 return;
             }
 
+            if (game.Users.Count >= 2)
+            {
+                await SendAsyncToClient(Context.ConnectionId, "Error", "Game room is full");
+                return;
+            }
+
             game.AddUser(Context.ConnectionId);
             game.AddMessage($"[Game room: {game.Id}]", "player joined room");
 
@@ -158,7 +164,7 @@ namespace TicTacToe.webapi.Hubs
             }
 
             if (game.Users.Count == 0)
-                _gameService.Games.Remove(game);
+                _gameService.DeleteGameById(game.Id);
         }
 
         private async Task SendAsyncToGroup(string groupName, string method, object? argument)
