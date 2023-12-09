@@ -1,16 +1,28 @@
 <article>
-  <div>
-    <button (click)="getGames()">Refresh list</button>
-  </div>
   <div *ngIf="games && games.length > 0">
-    <ul>
-      <li *ngFor="let game of games">
-        {{ game.id }}
-        <button type="button" class="btn btn-success" (click)="joinGame(game.id)">Join Game</button>
-      </li>
-    </ul>
+    <table class="table">
+      <tr>
+        <th>ID</th>
+        <th>Created at</th>
+        <th>Number of players</th>
+        <th></th>
+      </tr>
+      <tr *ngFor="let game of games">
+        <td>{{ game.id }}</td>
+        <td>{{ game.modified }}</td>
+        <td>{{ game.users.length }}</td>
+        <td><button type="button" class="btn btn-success" (click)="joinGame(game.id)">Join Game</button></td>
+      </tr>
+      <tr>
+        <td><button type="button" class="btn btn-success" (click)="getGames()">Refresh list</button></td>
+        <td></td>
+        <td></td>
+        <td><button type="button" class="btn btn-success" (click)="findRandomGame()">Find Random Game</button></td>
+      </tr>
+    </table>
   </div>
   <div *ngIf="!games || games.length === 0">
-    <p>No available games.</p>
+    <h2>No available games.</h2>
+    <button type="button" class="btn btn-danger" (click)="createGameRoom()">Create game room</button>
   </div>
 </article>

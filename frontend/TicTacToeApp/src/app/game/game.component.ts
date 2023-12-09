@@ -64,7 +64,6 @@ export class GameComponent implements OnInit {
     this.hubConnection.on('GameEnded', (result: string) => {
       console.log('Game Ended:', result);
       this.cdr.detectChanges();
-      // Handle game end logic here
     });
 
     this.hubConnection.on('NewChatMessage', (chatMessage: any) => {
@@ -73,18 +72,15 @@ export class GameComponent implements OnInit {
         this.chatContent += `${chatMessage.author} - ${chatMessage.content}\n`
       }
       this.cdr.detectChanges();
-      // Handle error logic here
     });
 
     this.hubConnection.on('Error', (error: string) => {
       console.error('Error:', error);
       this.cdr.detectChanges();
-      // Handle error logic here
     });
   }
 
   ngOnInit(): void {
-    // Odbieranie wartości przekazanej przez router z URL
     this.route.paramMap.subscribe(params => {
       this.gameId = params.get('id');
       console.log('Received value:', this.gameId);
@@ -98,13 +94,11 @@ export class GameComponent implements OnInit {
   }
 
   joinGame(): void {
-    // Call the PlayerJoinGame method on the server
     this.hubConnection.invoke('PlayerJoinGame', this.gameId)
       .catch((err: any) => console.error('Error while joining game:', err));
   }
 
   makeMove(x: number, y: number): void {
-    // Call the PlayerMove method on the server
     this.hubConnection.invoke('PlayerMove', this.gameId, x, y, this.clientFieldType)
       .catch((err: any) => console.error('Error while making move:', err));
   }

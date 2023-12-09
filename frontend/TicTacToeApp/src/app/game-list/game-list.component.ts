@@ -31,4 +31,18 @@ export class GameListComponent implements OnInit {
   joinGame(gameId: string): void {
     this.router.navigate(['/game', gameId]);
   }
+
+  findRandomGame(): void {
+    this.gameService.findRandomGame()
+      .subscribe(gameId => {
+        this.router.navigate(['/game', gameId])
+      });
+  }
+
+  createGameRoom(): void {
+    this.gameService.createGame()
+    .subscribe(gameId => {
+      this.router.navigate(['/game', gameId])
+    });
+  }
 }
