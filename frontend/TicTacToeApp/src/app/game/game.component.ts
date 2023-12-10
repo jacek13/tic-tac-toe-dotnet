@@ -19,6 +19,8 @@ export class GameComponent implements OnInit {
   public clientFieldType: any | null;
   public userText: string = '';
   public chatContent: string = '';
+  public disableStartButton = false; // Enum State will be better
+  public disableSpinner = true;
 
   constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef) {
     this.hubConnection = new signalR.HubConnectionBuilder()
@@ -39,6 +41,7 @@ export class GameComponent implements OnInit {
     this.hubConnection.on('SetChar', (fieldType: any) => {
       console.log(fieldType);
       if (fieldType) {
+        this.disableSpinner = true;
         this.clientFieldType = fieldType;
         this.chatContent += `[Client info] You play as: ${fieldType}\n`
         this.cdr.detectChanges();
@@ -94,6 +97,8 @@ export class GameComponent implements OnInit {
   }
 
   joinGame(): void {
+    this.disableStartButton = true;
+    this.disableSpinner = false;
     this.hubConnection.invoke('PlayerJoinGame', this.gameId)
       .catch((err: any) => console.error('Error while joining game:', err));
   }
