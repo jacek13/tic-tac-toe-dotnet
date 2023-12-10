@@ -1,5 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using Serilog;
+using TicTacToe.domain.Data;
 using TicTacToe.domain.Service;
+using TicTacToe.domain.Service.GameHistory;
 using TicTacToe.webapi.Hubs;
 
 namespace TicTacToe.webapi
@@ -27,17 +30,24 @@ namespace TicTacToe.webapi
             builder.Services.AddSwaggerGen();
             builder.Services.AddSignalR();
             builder.Services.AddSingleton<IGameService, GameService>();
-            builder.Host.UseSerilog();
+            builder.Services.AddSingleton<IGameHistoryService, GameHistoryService>();
+            builder.Services.AddDbContextFactory<AppDbContext>(options =>
+            {
+                options.UseNpgsql(configuration.GetValue<string>("db:connection"));
+            });
 
+            builder.Host.UseSerilog();
 
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName.Equals("dockerlocal"))
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            using var dbContext = app.Services.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContext();
+            dbContext.Database.EnsureCreated();
 
             app.UseCors(c => c
                 //.WithOrigins("http://localhost:5000", "https://localhost:5001", "http://localhost:4200")

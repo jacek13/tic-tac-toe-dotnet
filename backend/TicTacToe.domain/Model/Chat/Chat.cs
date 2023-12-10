@@ -1,6 +1,8 @@
-﻿namespace TicTacToe.domain.Model.Chat
+﻿using TicTacToe.domain.Model.Common;
+
+namespace TicTacToe.domain.Model.Chat
 {
-    public class GameChat
+    public class GameChat : BaseEntity
     {
         public Stack<ChatMessage> Messages { get; }
 

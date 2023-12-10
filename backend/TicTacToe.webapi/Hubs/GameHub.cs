@@ -114,14 +114,17 @@ namespace TicTacToe.webapi.Hubs
                     case MatchState.Draw:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "DRAW");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.Draw}");
+                        await _gameService.SaveGameResult(game.Id);
                         break;
                     case MatchState.CircleWon:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "CIRCLE_WON");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.CircleWon}");
+                        await _gameService.SaveGameResult(game.Id);
                         break;
                     case MatchState.CrossWon:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "CROSS_WON");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.CrossWon}");
+                        await _gameService.SaveGameResult(game.Id);
                         break;
                     case MatchState.MatchInterrupted:
                     default:

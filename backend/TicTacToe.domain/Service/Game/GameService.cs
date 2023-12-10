@@ -1,10 +1,18 @@
 ﻿using TicTacToe.domain.Model.TicTacToe;
+using TicTacToe.domain.Service.GameHistory;
 
 namespace TicTacToe.domain.Service
 {
     public class GameService : IGameService
     {
+        private readonly IGameHistoryService _gameHistoryService;
+
         private List<Game> Games { get; set; } = new();
+
+        public GameService(IGameHistoryService gameHistoryService)
+        {
+            _gameHistoryService = gameHistoryService;
+        }
 
         public Game? GetGame(Guid id)
             => Games.FirstOrDefault(game => game.Id == id);
@@ -35,6 +43,15 @@ namespace TicTacToe.domain.Service
 
             Games.Remove(game);
             return true;
+        }
+
+        public async Task<bool> SaveGameResult(Guid id)
+        {
+            var game = Games.FirstOrDefault(g => g.Id == id);
+            if (game is null) return false;
+
+            var gameView = game.ToGameView();
+            return await _gameHistoryService.StoreGame(gameView);
         }
     }
 }

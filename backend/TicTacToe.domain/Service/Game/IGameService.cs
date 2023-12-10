@@ -15,5 +15,7 @@ namespace TicTacToe.domain.Service
         IReadOnlyList<Game> GetActiveGames();
 
         bool DeleteGameById(Guid id);
+
+        Task<bool> SaveGameResult(Guid id);
     }
 }

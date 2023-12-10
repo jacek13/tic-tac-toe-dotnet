@@ -1,0 +1,34 @@
+services:
+  db:
+    image: "postgres:latest"
+    ports: 
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=admin_local
+      - POSTGRES_PASSWORD=Admin123!
+      - POSTGRES_DB=local_db
+    restart: always
+    volumes:
+      - db_local:/var/lib/postgresql/data/
+    networks:
+      - internal
+
+  webapi:
+    build: 
+      context: ./backend/
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=dockerlocal
+      - ASPNETCORE_URLS=http://0.0.0.0:5000/
+    depends_on:
+      - db
+    networks:
+      - internal
+
+volumes:
+  db_local:
+  
+networks:
+  internal:

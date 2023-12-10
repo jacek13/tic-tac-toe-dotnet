@@ -10,7 +10,8 @@
         InvalidPlayerCount,
         InvalidFieldType,
         MatchEnded,
-        ValidationError
+        ValidationError,
+        NotLoggedUser
     }
 
     public class DomainException : Exception

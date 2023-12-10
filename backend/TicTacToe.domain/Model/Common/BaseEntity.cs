@@ -5,8 +5,7 @@ namespace TicTacToe.domain.Model.Common
 {
     public class BaseEntity : IBaseEntity
     {
-        //[Key]
-        //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [JsonIgnore]
