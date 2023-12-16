@@ -4,21 +4,23 @@ using System.Text.Json;
 using TicTacToe.domain;
 using TicTacToe.domain.Model.TicTacToe;
 using TicTacToe.domain.Service;
+using TicTacToe.domain.Service.User;
 
 namespace TicTacToe.webapi.Hubs
 {
     public class GameHub : Hub
     {
         private readonly Serilog.ILogger _logger = Log.ForContext<GameHub>();
-
         private readonly IGameService _gameService;
+        private readonly IUserService _userService;
 
-        public GameHub(IGameService gameService)
+        public GameHub(IGameService gameService, IUserService userService)
         {
             _gameService = gameService;
+            _userService = userService;
         }
 
-        public async Task PlayerJoinGame(Guid gameId)
+        public async Task PlayerJoinGame(Guid gameId, string? accessToken)
         {
             var game = _gameService.GetGame(gameId);
 
@@ -35,7 +37,23 @@ namespace TicTacToe.webapi.Hubs
                 return;
             }
 
-            game.AddUser(Context.ConnectionId);
+            if (!string.IsNullOrWhiteSpace(accessToken))
+            {
+                var userInfo = await _userService.GetUserInfo(accessToken);
+                if (userInfo is null)
+                {
+                    game.AddUser(Context.ConnectionId);
+                }
+                else
+                {
+                    game.AddUser(Context.ConnectionId, userInfo.Name, userInfo.CognitoId);
+                }
+            }
+            else
+            {
+                game.AddUser(Context.ConnectionId);
+            }
+
             game.AddMessage($"[Game room: {game.Id}]", "player joined room");
 
             await Groups.AddToGroupAsync(Context.ConnectionId, game.Id.ToString());

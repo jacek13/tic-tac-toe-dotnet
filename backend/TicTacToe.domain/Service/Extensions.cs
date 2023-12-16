@@ -11,6 +11,8 @@ namespace TicTacToe.domain.Service
             : new GameView
             {
                 Id = game.Id,
+                WinnerId = FindGameWinner(game) is null ? Guid.Empty : FindGameWinner(game).UserId,
+                WinnerName = FindGameWinner(game) is null ? string.Empty : FindGameWinner(game).Name,
                 Modified = game.Modified,
                 MatchViewId = game.TicTacToeMatch.Id,
                 MatchView = new MatchView
@@ -55,5 +57,25 @@ namespace TicTacToe.domain.Service
                     }
                 }
             };
+
+        private static Player? FindGameWinner(Game game)
+        {
+            if (game == null) return null;
+
+            switch (game.TicTacToeMatch.State)
+            {
+                case MatchState.CircleWon:
+                    return game.Users.FirstOrDefault(u => u.Type == FieldType.Circle);
+                case MatchState.CrossWon:
+                    return game.Users.FirstOrDefault(u => u.Type == FieldType.Cross);
+                case MatchState.Warmup:
+                case MatchState.CircleTurn:
+                case MatchState.CrossTurn:
+                case MatchState.Draw:
+                case MatchState.MatchInterrupted:
+                default:
+                    return null;
+            }
+        }
     }
 }

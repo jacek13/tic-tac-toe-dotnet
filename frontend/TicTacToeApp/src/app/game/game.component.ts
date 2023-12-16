@@ -13,6 +13,7 @@ import * as signalR from '@microsoft/signalr';
 })
 export class GameComponent implements OnInit {
   private hubConnection: signalR.HubConnection;
+  private accessToken: string | null;
   public board: any[][];
   public gameId: string | null;
   public isMyMove: any;
@@ -29,6 +30,7 @@ export class GameComponent implements OnInit {
 
     this.board = [];
     this.gameId = '';
+    this.accessToken = '';
 
     this.hubConnection.on('SetMover', (isMyTurn: any) => {
       console.log(isMyTurn);
@@ -99,7 +101,7 @@ export class GameComponent implements OnInit {
   joinGame(): void {
     this.disableStartButton = true;
     this.disableSpinner = false;
-    this.hubConnection.invoke('PlayerJoinGame', this.gameId)
+    this.hubConnection.invoke('PlayerJoinGame', this.gameId, this.accessToken)
       .catch((err: any) => console.error('Error while joining game:', err));
   }
 

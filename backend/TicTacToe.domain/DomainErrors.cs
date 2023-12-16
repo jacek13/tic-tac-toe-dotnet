@@ -11,7 +11,10 @@
         InvalidFieldType,
         MatchEnded,
         ValidationError,
-        NotLoggedUser
+        NotLoggedUser,
+        UserNotFound,
+        UserInfoNotFound,
+        ConvertError
     }
 
     public class DomainException : Exception
