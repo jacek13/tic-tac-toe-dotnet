@@ -56,6 +56,20 @@ namespace TicTacToe.domain.Service.User
             }
         }
 
+        public async Task<IReadOnlyCollection<UserGameHistoryStats>> GetAllGamesForAuthenticatedUsers()
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+            var scoreBoard = await context.Games
+                .Include(g => g.Users)
+                .Where(g => g.WinnerId != Guid.Empty)
+                .Select(g => new { g.WinnerId, g.WinnerName })
+                .GroupBy(g => g.WinnerId)
+                .Select(g => new UserGameHistoryStats(g.Key, g.ToList().FirstOrDefault().WinnerName, g.Count()))
+                .ToListAsync();
+
+            return scoreBoard;
+        }
+
         public async Task<UserInfoResponse> GetUserInfo(string accessToken)
         {
             try

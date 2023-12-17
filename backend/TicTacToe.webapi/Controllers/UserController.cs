@@ -31,5 +31,11 @@ namespace TicTacToe.webapi.Controllers
             var accessToken = HttpContext?.Request?.Headers["Authorization"].ToString()?.Substring(7);
             return await _userService.GetAllGamesForAuthenticatedUser(accessToken);
         }
+
+        [HttpGet("user/score-board")]
+        public async Task<IReadOnlyCollection<UserGameHistoryStats>> GetGlobalScoreBoard()
+        {
+            return await _userService.GetAllGamesForAuthenticatedUsers();
+        }
     }
 }

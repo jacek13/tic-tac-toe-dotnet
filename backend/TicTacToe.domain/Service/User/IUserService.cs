@@ -8,5 +8,7 @@ namespace TicTacToe.domain.Service.User
         Task<UserInfoResponse> GetUserInfo(string accessToken);
 
         Task<IReadOnlyCollection<GameView>> GetAllGamesForAuthenticatedUser(string accessToken);
+
+        Task<IReadOnlyCollection<UserGameHistoryStats>> GetAllGamesForAuthenticatedUsers();
     }
 }
