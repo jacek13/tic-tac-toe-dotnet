@@ -14,6 +14,11 @@ const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: '#',
+    redirectTo: 'games',
+    pathMatch: 'full'
+  },
+  {
     path: 'auth/sign-in',
     component: SignInComponent,
   },
