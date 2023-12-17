@@ -13,6 +13,8 @@ namespace TicTacToe.domain.Model.TicTacToe
 
         public List<string> AllowNewRound { get; private set; }
 
+        public FieldType WinnerField { get; set; }
+
         public Game()
         {
             Chat = new();

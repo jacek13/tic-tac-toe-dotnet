@@ -16,6 +16,8 @@ namespace TicTacToe.domain.Service
 
         bool DeleteGameById(Guid id);
 
+        void SetFinalState(Guid id, FieldType finalState);
+
         Task<bool> SaveGameResult(Guid id);
     }
 }

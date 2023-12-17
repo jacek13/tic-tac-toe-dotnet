@@ -40,7 +40,8 @@ namespace TicTacToe.domain.Service.User
 
                 return await context.Games
                     .Include(g => g.Users)
-                    .Where(g => g.Users.Any(u => u.Id == userData.Id || u.Name.Equals(externalUserData.Username, StringComparison.OrdinalIgnoreCase)))
+                    .Include(g => g.MatchView)
+                    .Where(g => g.Users.Any(u => u.Id == userData.Id || u.Name == externalUserData.Username))
                     .ToListAsync();
             }
             catch (DomainException e)
@@ -63,18 +64,23 @@ namespace TicTacToe.domain.Service.User
 
                 if (externalUserData is null) throw new DomainException(DomainError.UserNotFound);
                 if (!externalUserData.Attributes.TryGetValue("sub", out var cognitoSub)) throw new DomainException(DomainError.UserInfoNotFound);
+                if (!externalUserData.Attributes.TryGetValue("email", out var cognitoEmail)) throw new DomainException(DomainError.UserInfoNotFound);
                 if (!Guid.TryParse(cognitoSub, out var cognitoId)) throw new DomainException(DomainError.ConvertError);
 
                 using var context = await _contextFactory.CreateDbContextAsync();
                 var userData = await context.Players.FirstOrDefaultAsync(p => p.CognitoId == cognitoId);
 
-                if (userData is null) throw new DomainException(DomainError.UserInfoNotFound);
+                if (userData is null)
+                {
+                    _logger.Information("User: {cognitoId} data not found in db", cognitoId);
+                    return new UserInfoResponse(cognitoId, cognitoId, cognitoEmail, 0);
+                }
 
                 var playerWins = await context.Games
-                    .Where(g => g.WinnerId == userData.Id || g.WinnerName.Equals(externalUserData.Username, StringComparison.OrdinalIgnoreCase))
+                    .Where(g => g.WinnerId == userData.CognitoId || g.WinnerName == externalUserData.Username)
                     .ToListAsync();
 
-                return new UserInfoResponse(userData.Id, cognitoId, externalUserData.Username, playerWins is null ? 0 : playerWins.Count);
+                return new UserInfoResponse(userData.Id, cognitoId, cognitoEmail, playerWins is null ? 0 : playerWins.Count);
             }
             catch (DomainException e)
             {

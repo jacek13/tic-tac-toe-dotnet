@@ -36,6 +36,7 @@ namespace TicTacToe.domain.Service
                     new PlayerView
                     {
                         Id = game.Users.First().Id,
+                        CognitoId = game.Users.First().UserId,
                         GameViewId = game.Id,
                         Modified = game.Users.First().Modified,
                         ConnectionId = game.Users.First().ConnectionId,
@@ -47,6 +48,7 @@ namespace TicTacToe.domain.Service
                     new PlayerView
                     {
                         Id = game.Users.Last().Id,
+                        CognitoId = game.Users.Last().UserId,
                         GameViewId = game.Id,
                         Modified = game.Users.Last().Modified,
                         ConnectionId = game.Users.Last().ConnectionId,

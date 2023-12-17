@@ -3,6 +3,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import * as signalR from '@microsoft/signalr';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-game',
@@ -23,14 +24,14 @@ export class GameComponent implements OnInit {
   public disableStartButton = false; // Enum State will be better
   public disableSpinner = true;
 
-  constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef) {
+  constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef, private authService: AuthService) {
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl('http://localhost:5000/hub/game', { withCredentials: false }) // TODO problem with CORS - origin null and move url to const data
       .build();
 
     this.board = [];
     this.gameId = '';
-    this.accessToken = '';
+    this.accessToken = authService.getAuthorizationToken();
 
     this.hubConnection.on('SetMover', (isMyTurn: any) => {
       console.log(isMyTurn);
@@ -101,6 +102,7 @@ export class GameComponent implements OnInit {
   joinGame(): void {
     this.disableStartButton = true;
     this.disableSpinner = false;
+    console.log(this.accessToken);
     this.hubConnection.invoke('PlayerJoinGame', this.gameId, this.accessToken)
       .catch((err: any) => console.error('Error while joining game:', err));
   }

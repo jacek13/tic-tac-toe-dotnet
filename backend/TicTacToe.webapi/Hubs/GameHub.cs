@@ -39,7 +39,8 @@ namespace TicTacToe.webapi.Hubs
 
             if (!string.IsNullOrWhiteSpace(accessToken))
             {
-                var userInfo = await _userService.GetUserInfo(accessToken);
+                var token = accessToken.Substring(7);
+                var userInfo = await _userService.GetUserInfo(token);
                 if (userInfo is null)
                 {
                     game.AddUser(Context.ConnectionId);
@@ -132,16 +133,19 @@ namespace TicTacToe.webapi.Hubs
                     case MatchState.Draw:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "DRAW");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.Draw}");
+                        _gameService.SetFinalState(game.Id, FieldType.None);
                         await _gameService.SaveGameResult(game.Id);
                         break;
                     case MatchState.CircleWon:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "CIRCLE_WON");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.CircleWon}");
+                        _gameService.SetFinalState(game.Id, FieldType.Circle);
                         await _gameService.SaveGameResult(game.Id);
                         break;
                     case MatchState.CrossWon:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "CROSS_WON");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.CrossWon}");
+                        _gameService.SetFinalState(game.Id, FieldType.Cross);
                         await _gameService.SaveGameResult(game.Id);
                         break;
                     case MatchState.MatchInterrupted:
