@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import * as signalR from '@microsoft/signalr';
 import { AuthService } from '../auth/auth.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-game',
@@ -26,7 +27,7 @@ export class GameComponent implements OnInit {
 
   constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef, private authService: AuthService) {
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl('http://localhost:5000/hub/game', { withCredentials: false }) // TODO problem with CORS - origin null and move url to const data
+      .withUrl(`${environment.apiUrl}/hub/game`, { withCredentials: false }) // TODO problem with CORS - origin null and move url to const data
       .build();
 
     this.board = [];
