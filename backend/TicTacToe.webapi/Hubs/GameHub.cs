@@ -37,6 +37,12 @@ namespace TicTacToe.webapi.Hubs
                 return;
             }
 
+            if (game.Users.Any(u => u.ConnectionId == Context.ConnectionId))
+            {
+                await SendAsyncToClient(Context.ConnectionId, "Error", "Player already in game room");
+                return;
+            }
+
             if (!string.IsNullOrWhiteSpace(accessToken))
             {
                 var token = accessToken.Substring(7);
@@ -47,6 +53,11 @@ namespace TicTacToe.webapi.Hubs
                 }
                 else
                 {
+                    if (game.Users.Any(u => u.UserId == userInfo.CognitoId))
+                    {
+                        await SendAsyncToClient(Context.ConnectionId, "Error", "Logged player already in game room");
+                        return;
+                    }
                     game.AddUser(Context.ConnectionId, userInfo.Name, userInfo.CognitoId);
                 }
             }

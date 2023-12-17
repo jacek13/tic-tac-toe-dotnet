@@ -5,6 +5,7 @@ import { GameComponent } from './game/game.component';
 import { SignInComponent } from './auth/signin/signin.component';
 import { SignUpComponent } from './auth/signup/signup.component';
 import { SignUpConfirmComponent } from './auth/signup/signup-confirm.component';
+import { ScoreBoardComponent } from './game-global-score-board/game-score-board.component';
 
 const routes: Routes = [
   {
@@ -31,6 +32,10 @@ const routes: Routes = [
   { 
     path: 'game/:id', 
     component: GameComponent 
+  },
+  { 
+    path: 'score-board', 
+    component: ScoreBoardComponent 
   },
 ];
 

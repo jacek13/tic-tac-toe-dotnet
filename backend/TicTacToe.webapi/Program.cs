@@ -126,7 +126,7 @@ namespace TicTacToe.webapi
                 //.AllowCredentials()
                 .Build());
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseSerilogRequestLogging();
             app.UseAuthentication();
             app.UseAuthorization();

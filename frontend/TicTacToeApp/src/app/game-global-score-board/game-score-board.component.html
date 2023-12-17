@@ -1,0 +1,21 @@
+<article>
+  <div *ngIf="scoreBoard && scoreBoard.length > 0">
+    <table class="table">
+      <tr>
+        <th>Username</th>
+        <th>Wins</th>
+      </tr>
+      <tr *ngFor="let score of scoreBoard">
+        <td>{{ score.email }}</td>
+        <td>{{ score.wins }}</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><button type="button" class="btn btn-success" (click)="getScoreBoard()">Refresh list</button></td>
+      </tr>
+    </table>
+  </div>
+  <div *ngIf="!scoreBoard || scoreBoard.length === 0">
+    <h2>No available scores</h2>
+  </div>
+</article>

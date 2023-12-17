@@ -22,7 +22,7 @@ export class AuthService {
 
   signUpConfirm = (requestBody: ConfirmSignUpRequest): Observable<boolean> => this.http.post<boolean>(`${host}${prefix}/sign-up/confirm`, requestBody);
 
-  signOut = (): Observable<any> => this.http.get<any>(`${host}${prefix}/sign-out`);
+  signOut = (): Observable<any> => this.http.post<any>(`${host}${prefix}/sign-out`, null);
 
   meInfo = (): Observable<any> => this.http.get<any>(`${host}${prefix}/me`);
 
