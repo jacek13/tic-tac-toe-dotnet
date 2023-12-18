@@ -31,5 +31,19 @@ namespace TicTacToe.webapi.Controllers
         [HttpGet("/games")]
         public IReadOnlyList<Game> GetActiveGames()
             => _gameService.GetActiveGames();
+
+        [HttpDelete("/games")]
+        public IActionResult DeleteGameById([FromBody] Guid id)
+            => _gameService.DeleteGameById(id) ? Ok(id) : BadRequest();
+
+        // TODO remove me later
+        [HttpDelete("/games/all")]
+        public IActionResult DeleteAllGames()
+        {
+            _gameService.GetActiveGames()
+                .ToList()
+                .ForEach(g => _gameService.DeleteGameById(g.Id));
+            return Ok();
+        }
     }
 }

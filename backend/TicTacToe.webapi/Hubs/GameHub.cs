@@ -80,20 +80,27 @@ namespace TicTacToe.webapi.Hubs
 
         private async Task StartGame(Game game)
         {
-            _logger.Information("Starting the game with id: {gameId}", game.Id);
+            try
+            {
+                _logger.Information("Starting the game with id: {gameId}", game.Id);
 
-            var (playerFirst, playerSecond) = game.AssignFieldsToPlayers();
-            var startingField = game.WhichPlayerBegin();
-            var isPlayerOneBeginner = playerFirst.Type == startingField;
+                var (playerFirst, playerSecond) = _gameService.AssignFieldsToPlayers(game.Id);
+                var startingField = _gameService.WhichPlayerBegin(game.Id);
+                var isPlayerOneBeginner = playerFirst.Type == startingField;
 
-            await SendAsyncToClient(playerFirst.ConnectionId, "SetMover", isPlayerOneBeginner);
-            await SendAsyncToClient(playerFirst.ConnectionId, "SetChar", isPlayerOneBeginner ? 'X' : 'O');
-            await SendAsyncToClient(playerSecond.ConnectionId, "SetMover", !isPlayerOneBeginner);
-            await SendAsyncToClient(playerSecond.ConnectionId, "SetChar", !isPlayerOneBeginner ? 'X' : 'O');
-            await SendAsyncToGroup(game.Id.ToString(), "GetGame", JsonSerializer.Serialize(game.GetBoardAsCharacters()));
+                await SendAsyncToClient(playerFirst.ConnectionId, "SetMover", isPlayerOneBeginner);
+                await SendAsyncToClient(playerFirst.ConnectionId, "SetChar", isPlayerOneBeginner ? 'X' : 'O');
+                await SendAsyncToClient(playerSecond.ConnectionId, "SetMover", !isPlayerOneBeginner);
+                await SendAsyncToClient(playerSecond.ConnectionId, "SetChar", !isPlayerOneBeginner ? 'X' : 'O');
+                await SendAsyncToGroup(game.Id.ToString(), "GetGame", JsonSerializer.Serialize(game.GetBoardAsCharacters()));
 
-            game.Chat.Add($"[Game room: {game.Id}]", $"First move for: {game.FieldTypeToChar(startingField)}");
-            await SendAsyncToGroup(game.Id.ToString(), "NewChatMessage", game.GetLastMessage());
+                game.Chat.Add($"[Game room: {game.Id}]", $"First move for: {game.FieldTypeToChar(startingField)}");
+                await SendAsyncToGroup(game.Id.ToString(), "NewChatMessage", game.GetLastMessage());
+            }
+            catch (DomainException e)
+            {
+                _logger.Warning("Domain error type: {errorType} in game room {gameId}: {message}", e.ErrorKind, game.Id, e.Message);
+            }
         }
 
         public async Task SendChatMessage(Guid gameId, string message)
@@ -144,20 +151,20 @@ namespace TicTacToe.webapi.Hubs
                     case MatchState.Draw:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "DRAW");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.Draw}");
-                        _gameService.SetFinalState(game.Id, FieldType.None);
-                        await _gameService.SaveGameResult(game.Id);
+                        game.WinnerField = FieldType.None;
+                        await _gameService.SaveGameResult(game);
                         break;
                     case MatchState.CircleWon:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "CIRCLE_WON");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.CircleWon}");
-                        _gameService.SetFinalState(game.Id, FieldType.Circle);
-                        await _gameService.SaveGameResult(game.Id);
+                        game.WinnerField = FieldType.Circle;
+                        await _gameService.SaveGameResult(game);
                         break;
                     case MatchState.CrossWon:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "CROSS_WON");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.CrossWon}");
-                        _gameService.SetFinalState(game.Id, FieldType.Cross);
-                        await _gameService.SaveGameResult(game.Id);
+                        game.WinnerField = FieldType.Cross;
+                        await _gameService.SaveGameResult(game);
                         break;
                     case MatchState.MatchInterrupted:
                     default:

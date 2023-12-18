@@ -107,3 +107,12 @@ sudo docker-compose --version
 ```
 
 Then download the application's source code (**via git**) or its images (**upload the built images to your private repositories and download it to EC2**). After that run as you would for a local environment. If you have built images before then remember to change the docker-compose.yml file (change section build to image).
+
+Remember also to change file `environment.ts` in folder `frontend/TicTacToeApp/src/environments`.
+
+```json
+export const environment = {
+    production: false,
+    apiUrl: '<paste your EC2 public ip>:5000'
+};
+```

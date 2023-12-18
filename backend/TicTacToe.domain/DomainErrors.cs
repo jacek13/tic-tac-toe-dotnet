@@ -14,7 +14,8 @@
         NotLoggedUser,
         UserNotFound,
         UserInfoNotFound,
-        ConvertError
+        ConvertError,
+        GameNotFound
     }
 
     public class DomainException : Exception

@@ -45,9 +45,8 @@ namespace TicTacToe.domain.Service
             return true;
         }
 
-        public async Task<bool> SaveGameResult(Guid id)
+        public async Task<bool> SaveGameResult(Game game)
         {
-            var game = Games.FirstOrDefault(g => g.Id == id);
             if (game is null) return false;
 
             var gameView = game.ToGameView();
@@ -60,6 +59,22 @@ namespace TicTacToe.domain.Service
             if (game is null) return;
 
             game.WinnerField = finalState;
+        }
+
+        public (Player, Player) AssignFieldsToPlayers(Guid gameId)
+        {
+            var game = Games.FirstOrDefault(g => g.Id == gameId);
+            if (game is null) throw new DomainException(DomainError.GameNotFound);
+
+            return game.AssignFieldsToPlayers();
+        }
+
+        public FieldType WhichPlayerBegin(Guid gameId)
+        {
+            var game = Games.FirstOrDefault(g => g.Id == gameId);
+            if (game is null) throw new DomainException(DomainError.GameNotFound);
+
+            return game.WhichPlayerBegin();
         }
     }
 }

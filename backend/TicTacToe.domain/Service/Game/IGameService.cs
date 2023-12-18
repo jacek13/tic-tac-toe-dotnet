@@ -18,6 +18,10 @@ namespace TicTacToe.domain.Service
 
         void SetFinalState(Guid id, FieldType finalState);
 
-        Task<bool> SaveGameResult(Guid id);
+        (Player, Player) AssignFieldsToPlayers(Guid gameId);
+
+        FieldType WhichPlayerBegin(Guid gameId);
+
+        Task<bool> SaveGameResult(Game game);
     }
 }
