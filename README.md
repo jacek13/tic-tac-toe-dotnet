@@ -5,7 +5,7 @@ The repository contains the source code for a multiplayer game of tic-tac-toe. B
 Backend has been integrated with AWS Cognito using [ASP.NET Core Identity Provider for Amazon Cognito](https://github.com/aws/aws-aspnet-cognito-identity-provider).
 
 
-The application allows users logged in and not logged in to play tic-tac-toe. Logged-in users are listed on the global scoreboard while the data of non-logged-in users is not accessible from the frontend. The app also has a simple chat feature that allows for communion in the game room.
+The application allows users logged in and not logged in to play tic-tac-toe. Logged-in users are listed on the global scoreboard while the data of non-logged-in users is not accessible from the frontend. The app also has a simple chat feature that allows for communication in the game room.
 
 
 # Project launch
@@ -13,6 +13,7 @@ The application allows users logged in and not logged in to play tic-tac-toe. Lo
 ### **Local environment** (without .Net and angular cli)
 
 **requirements:**
+- AWS Cognito (you can try to run without AWS Cognito but all auth functionalities will not work)
 - docker
 - docker-compose
 
@@ -105,4 +106,4 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo docker-compose --version
 ```
 
-Then download the application's source code (**via git**) or its images (**upload the built images to your private repositories and download**) and run as you would for a local environment. If you have built images before then remember to change the docker-compose.yml file (change section build to image).
+Then download the application's source code (**via git**) or its images (**upload the built images to your private repositories and download it to EC2**). After that run as you would for a local environment. If you have built images before then remember to change the docker-compose.yml file (change section build to image).
