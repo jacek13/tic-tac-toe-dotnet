@@ -53,5 +53,13 @@ namespace TicTacToe.domain.Service
             var gameView = game.ToGameView();
             return await _gameHistoryService.StoreGame(gameView);
         }
+
+        public void SetFinalState(Guid id, FieldType finalState)
+        {
+            var game = Games.FirstOrDefault(g => g.Id == id);
+            if (game is null) return;
+
+            game.WinnerField = finalState;
+        }
     }
 }

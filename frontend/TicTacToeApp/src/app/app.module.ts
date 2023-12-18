@@ -6,6 +6,9 @@ import { GameService } from './game-service/game-sevice.service';
 import { HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { BrowserModule } from '@angular/platform-browser';
+import { AuthInterceptorProvider } from './auth.interceptor';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AuthService } from './auth/auth.service';
 
 @NgModule({
   declarations: [
@@ -15,9 +18,11 @@ import { BrowserModule } from '@angular/platform-browser';
     CommonModule,
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    FormsModule,
+    ReactiveFormsModule 
   ],
-  providers: [GameService],
+  providers: [GameService, AuthService, AuthInterceptorProvider],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

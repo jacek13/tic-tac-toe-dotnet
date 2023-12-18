@@ -12,6 +12,8 @@ namespace TicTacToe.domain.Model.DataAccess
         [JsonIgnore]
         public GameView GameView { get; set; }
 
+        public Guid CognitoId { get; set; }
+
         public string ConnectionId { get; set; }
 
         public bool IsLoggedUser { get; set; } = false;

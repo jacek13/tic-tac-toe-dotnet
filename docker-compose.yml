@@ -27,6 +27,17 @@ services:
     networks:
       - internal
 
+  frontend:
+    build: 
+      context: ./frontend/TicTacToeApp
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    depends_on:
+      - webapi
+    networks:
+      - internal
+
 volumes:
   db_local:
   

@@ -1,7 +1,11 @@
 <div class="card">
   <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
-    <a class="navbar-brand" href="#">Tic Tac Toe</a>
-    <a class="nav-link" href="/games">Game list</a>
+    <a class="navbar-brand">Tic Tac Toe</a>
+    <a class="nav-link" class="btn btn-light" routerLink="/games">Game list</a>
+    <a class="nav-link" class="btn btn-light" routerLink="/score-board">Score board</a>
+    <a *ngIf="isLoggedIn">Logged player: <b>{{ userInfo.attributes.email }}</b></a>
+    <a *ngIf="isLoggedIn" type="button" class="btn btn-primary" (click)="signOut()">Sign out</a>
+    <a *ngIf="!isLoggedIn" type="button" class="btn btn-primary" routerLink="/auth/sign-in">Sign in</a>
   </nav>
   <main class="card-body">
     <router-outlet></router-outlet>

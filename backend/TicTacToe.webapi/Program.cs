@@ -1,8 +1,17 @@
+using Amazon;
+using Amazon.CognitoIdentityProvider;
+using Amazon.Runtime;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using TicTacToe.domain.Data;
 using TicTacToe.domain.Service;
+using TicTacToe.domain.Service.Auth;
+using TicTacToe.domain.Service.Auth.Cognito;
 using TicTacToe.domain.Service.GameHistory;
+using TicTacToe.domain.Service.User;
 using TicTacToe.webapi.Hubs;
 
 namespace TicTacToe.webapi
@@ -24,16 +33,75 @@ namespace TicTacToe.webapi
 
             // Add services to the container.
 
+            // TODO Move to seperate file that configures services: public static void ConfigureServices(this IServiceCollection services, IConfiguration configuration)
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
             builder.Services.AddSignalR();
             builder.Services.AddSingleton<IGameService, GameService>();
             builder.Services.AddSingleton<IGameHistoryService, GameHistoryService>();
+            builder.Services.AddSingleton<IAuthService, CognitoAuthService>();
+            builder.Services.AddSingleton<IUserService, UserService>();
+            builder.Services.AddCognitoIdentity();
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddDbContextFactory<AppDbContext>(options =>
             {
                 options.UseNpgsql(configuration.GetValue<string>("db:connection"));
+            });
+            builder.Services.AddSwaggerGen(c =>
+            {
+                var securitySchema = new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                };
+                c.AddSecurityDefinition("Bearer", securitySchema);
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] { }
+                    }
+                });
+            });
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.Authority = configuration.GetValue<string>("AWS:Authority");
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateAudience = false
+                };
+            });
+            builder.Services.AddSingleton<IAmazonCognitoIdentityProvider>(provider =>
+            {
+                var region = configuration.GetValue<string>("AWS:Region");
+                var accessKey = configuration.GetValue<string>("AWS:UserPoolClientId");
+                var secretKey = configuration.GetValue<string>("AWS:UserPoolClientSecret");
+                var credentials = new BasicAWSCredentials(accessKey, secretKey);
+                var cognitoClient = new AmazonCognitoIdentityProviderClient(credentials, RegionEndpoint.GetBySystemName(region));
+
+                return cognitoClient;
             });
 
             builder.Host.UseSerilog();
@@ -58,8 +126,9 @@ namespace TicTacToe.webapi
                 //.AllowCredentials()
                 .Build());
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseSerilogRequestLogging();
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();

@@ -4,21 +4,23 @@ using System.Text.Json;
 using TicTacToe.domain;
 using TicTacToe.domain.Model.TicTacToe;
 using TicTacToe.domain.Service;
+using TicTacToe.domain.Service.User;
 
 namespace TicTacToe.webapi.Hubs
 {
     public class GameHub : Hub
     {
         private readonly Serilog.ILogger _logger = Log.ForContext<GameHub>();
-
         private readonly IGameService _gameService;
+        private readonly IUserService _userService;
 
-        public GameHub(IGameService gameService)
+        public GameHub(IGameService gameService, IUserService userService)
         {
             _gameService = gameService;
+            _userService = userService;
         }
 
-        public async Task PlayerJoinGame(Guid gameId)
+        public async Task PlayerJoinGame(Guid gameId, string? accessToken)
         {
             var game = _gameService.GetGame(gameId);
 
@@ -35,7 +37,35 @@ namespace TicTacToe.webapi.Hubs
                 return;
             }
 
-            game.AddUser(Context.ConnectionId);
+            if (game.Users.Any(u => u.ConnectionId == Context.ConnectionId))
+            {
+                await SendAsyncToClient(Context.ConnectionId, "Error", "Player already in game room");
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(accessToken))
+            {
+                var token = accessToken.Substring(7);
+                var userInfo = await _userService.GetUserInfo(token);
+                if (userInfo is null)
+                {
+                    game.AddUser(Context.ConnectionId);
+                }
+                else
+                {
+                    if (game.Users.Any(u => u.UserId == userInfo.CognitoId))
+                    {
+                        await SendAsyncToClient(Context.ConnectionId, "Error", "Logged player already in game room");
+                        return;
+                    }
+                    game.AddUser(Context.ConnectionId, userInfo.Name, userInfo.CognitoId);
+                }
+            }
+            else
+            {
+                game.AddUser(Context.ConnectionId);
+            }
+
             game.AddMessage($"[Game room: {game.Id}]", "player joined room");
 
             await Groups.AddToGroupAsync(Context.ConnectionId, game.Id.ToString());
@@ -114,16 +144,19 @@ namespace TicTacToe.webapi.Hubs
                     case MatchState.Draw:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "DRAW");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.Draw}");
+                        _gameService.SetFinalState(game.Id, FieldType.None);
                         await _gameService.SaveGameResult(game.Id);
                         break;
                     case MatchState.CircleWon:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "CIRCLE_WON");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.CircleWon}");
+                        _gameService.SetFinalState(game.Id, FieldType.Circle);
                         await _gameService.SaveGameResult(game.Id);
                         break;
                     case MatchState.CrossWon:
                         await SendAsyncToGroup(game.Id.ToString(), "GameEnded", "CROSS_WON");
                         message = ($"[Game room: {game.Id}]", $"Game ended: {MatchState.CrossWon}");
+                        _gameService.SetFinalState(game.Id, FieldType.Cross);
                         await _gameService.SaveGameResult(game.Id);
                         break;
                     case MatchState.MatchInterrupted:
