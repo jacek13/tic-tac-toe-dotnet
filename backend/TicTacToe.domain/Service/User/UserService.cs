@@ -3,7 +3,6 @@ using Serilog;
 using TicTacToe.domain.Data;
 using TicTacToe.domain.Model.DataAccess;
 using TicTacToe.domain.Service.Auth;
-using TicTacToe.domain.Service.GameHistory;
 using TicTacToe.domain.Service.User.Responses;
 
 namespace TicTacToe.domain.Service.User
@@ -11,14 +10,12 @@ namespace TicTacToe.domain.Service.User
     public class UserService : IUserService
     {
         private readonly IAuthService _authService;
-        private readonly IGameHistoryService _gameHistoryService;
         private readonly ILogger _logger = Log.ForContext<UserService>();
         private readonly IDbContextFactory<AppDbContext> _contextFactory;
 
-        public UserService(IAuthService authService, IGameHistoryService gameHistoryService, IDbContextFactory<AppDbContext> contextFactory)
+        public UserService(IAuthService authService, IDbContextFactory<AppDbContext> contextFactory)
         {
             _authService = authService;
-            _gameHistoryService = gameHistoryService;
             _contextFactory = contextFactory;
         }
 
@@ -67,7 +64,9 @@ namespace TicTacToe.domain.Service.User
                 .Select(g => new UserGameHistoryStats(g.Key, g.ToList().FirstOrDefault().WinnerName, g.Count()))
                 .ToListAsync();
 
-            return scoreBoard;
+            return scoreBoard
+                .OrderByDescending(g => g.Wins)
+                .ToList();
         }
 
         public async Task<UserInfoResponse> GetUserInfo(string accessToken)
