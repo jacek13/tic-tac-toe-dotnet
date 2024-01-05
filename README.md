@@ -110,7 +110,7 @@ Then download the application's source code (**via git**) or its images (**uploa
 
 Remember also to change file `environment.ts` in folder `frontend/TicTacToeApp/src/environments`.
 
-```json
+```js
 export const environment = {
     production: false,
     apiUrl: '<paste your EC2 public ip>:5000'
