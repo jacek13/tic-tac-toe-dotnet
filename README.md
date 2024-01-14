@@ -113,6 +113,18 @@ Remember also to change file `environment.ts` in folder `frontend/TicTacToeApp/s
 ```js
 export const environment = {
     production: false,
-    apiUrl: '<paste your EC2 public ip>:5000'
+    apiUrl: '<paste here your EC2 public ip or domain>:5000'
 };
 ```
+
+### Frontend
+
+The frontend of the application is shown below. The screenshots present the application deployed through **AWS Elastic Beanstalk**.
+
+![game-list](./resources/game-list.PNG)
+
+![game-list](./resources/game-hub.PNG)
+
+![game-list](./resources/score-board.PNG)
+
+![game-list](./resources/login-page.PNG)
